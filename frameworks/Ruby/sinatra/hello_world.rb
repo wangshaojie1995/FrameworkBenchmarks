@@ -17,9 +17,7 @@ class HelloWorld < Sinatra::Base
   helpers do
     def bounded_queries
       queries = params[:queries].to_i
-      return QUERIES_MIN if queries < QUERIES_MIN
-      return QUERIES_MAX if queries > QUERIES_MAX
-      queries
+      queries.clamp(QUERIES_MIN, QUERIES_MAX)
     end
 
     def json(data)
@@ -40,6 +38,10 @@ class HelloWorld < Sinatra::Base
   after do
     response['Server'] = SERVER_STRING
   end if SERVER_STRING
+
+  after do
+    ActiveRecord::Base.clear_active_connections!
+  end
 
   # Test type 1: JSON serialization
   get '/json' do
@@ -88,7 +90,9 @@ class HelloWorld < Sinatra::Base
       ActiveRecord::Base.connection_pool.with_connection do
         Array.new(bounded_queries) do
           world = World.find(rand1)
-          world.update(:randomnumber=>rand1)
+          new_value = rand1
+          new_value = rand1 while new_value == world.randomnumber
+          world.update(randomnumber: new_value)
           world
         end
       end

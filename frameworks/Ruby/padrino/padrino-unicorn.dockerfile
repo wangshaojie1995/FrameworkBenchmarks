@@ -1,4 +1,4 @@
-FROM ruby:2.4
+FROM ruby:3.0
 
 WORKDIR /padrino
 COPY app app
@@ -9,9 +9,11 @@ COPY config.ru config.ru
 COPY Gemfile Gemfile
 COPY Rakefile Rakefile
 
-RUN bundle install --jobs=4 --gemfile=/padrino/Gemfile --path=/padrino/padrino/bundle
+RUN bundle install --jobs=4 --gemfile=/padrino/Gemfile
 
-RUN apt update -yqq && apt install -yqq nginx
+RUN apt-get update -yqq && apt-get install -yqq nginx
+
+EXPOSE 8080
 
 CMD nginx -c /padrino/config/nginx.conf && \
     bundle exec unicorn -E production -c config/unicorn.rb

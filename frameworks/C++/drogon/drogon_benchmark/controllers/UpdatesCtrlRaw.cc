@@ -43,22 +43,22 @@ void UpdatesCtrlRaw::update(
     const DbClientPtr &client)
 {
     auto const &sql = getSQL(results->size());
-    auto sqlBinder = *client << string_view(sql.data(), sql.length());
+    auto sqlBinder = *client << std::string_view(sql.data(), sql.length());
     Json::Value json;
     json.resize(0);
     for (auto const &w : *results)
     {
         auto randId = rand() % 10000 + 1;
-        sqlBinder << w.getValueOfId();
+        sqlBinder << w.getId();
         sqlBinder << randId;
         Json::Value world;
-        world["id"] = w.getValueOfId();
+        world["id"] = w.getId();
         world["randomnumber"] = randId;
         json.append(std::move(world));
     }
     for (auto const &w : *results)
     {
-        sqlBinder << w.getValueOfId();
+        sqlBinder << w.getId();
     }
 
     sqlBinder >> [callbackPtr,

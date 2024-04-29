@@ -7,7 +7,6 @@ $pdo = new PDO('mysql:host=tfb-database;dbname=hello_world', 'benchmarkdbuser', 
 
 $statement = $pdo->prepare('SELECT id,randomNumber FROM World WHERE id=?');
 $fortune   = $pdo->prepare('SELECT id,message FROM Fortune');
-$random    = $pdo->prepare('SELECT randomNumber FROM World WHERE id=?');
 $update    = $pdo->prepare('UPDATE World SET randomNumber=? WHERE id=?');
 
 function db()
@@ -25,7 +24,7 @@ function query()
     ngx_header_set('Content-Type', 'application/json');
 
     $query_count = 1;
-    $params      = ngx::query_args()['queries'];
+    $params      = (int) ngx::query_args()['q'];
     if ($params > 1) {
         $query_count = min($params, 500);
     }
@@ -39,19 +38,19 @@ function query()
 
 function update()
 {
-    global $random, $update;
+    global $statement, $update;
     ngx_header_set('Content-Type', 'application/json');
 
     $query_count = 1;
-    $params      = ngx::query_args()['queries'];
+    $params      = (int) ngx::query_args()['q'];
     if ($params > 1) {
         $query_count = min($params, 500);
     }
     while ($query_count--) {
         $id = mt_rand(1, 10000);
-        $random->execute([$id]);
+        $statement->execute([$id]);
 
-        $world = ['id' => $id, 'randomNumber' => $random->fetchColumn()];
+        $world = $statement->fetch();
         $update->execute(
             [$world['randomNumber'] = mt_rand(1, 10000), $id]
         );
@@ -78,7 +77,5 @@ function fortune()
         $html .= "<tr><td>$id</td><td>$message</td></tr>";
     }
 
-    echo '<!DOCTYPE html><html><head><title>Fortunes</title></head><body><table><tr><th>id</th><th>message</th></tr>',
-        $html,
-        '</table></body></html>';
+    echo "<!DOCTYPE html><html><head><title>Fortunes</title></head><body><table><tr><th>id</th><th>message</th></tr>$html</table></body></html>";
 }
