@@ -1,12 +1,12 @@
-FROM node:20.12.2-alpine
+FROM node:20-slim
 
 COPY ./ ./
 
 RUN npm install
 
 ENV NODE_ENV production
-ENV DATABASE mongo
+ENV DATABASE mysql
 
 EXPOSE 8080
 
-CMD ["node", "app.js"]
+CMD ["npm", "start"]
